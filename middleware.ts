@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // Simple password protection for sharing with friends
-// Password: whale27
-const CORRECT_PASSWORD = 'whale27';
+// Password: whalehunter@27
+const CORRECT_PASSWORD = 'whalehunter@27';
 
 export function middleware(request: NextRequest) {
   // Check if user has valid password cookie
