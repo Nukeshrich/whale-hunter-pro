@@ -38,6 +38,7 @@ export default function Home() {
               <Link href="/whales" className="text-white/80 hover:text-white transition-colors">Whales</Link>
               <Link href="/fda" className="text-white/80 hover:text-white transition-colors">FDA</Link>
               <Link href="/insiders" className="text-white/80 hover:text-white transition-colors">Insiders</Link>
+              <Link href="/hidden-gems" className="text-white/80 hover:text-white transition-colors">Hidden Gems</Link>
               <Link href="/guide" className="text-white/80 hover:text-white transition-colors">Guide</Link>
               <Link href="/pricing" className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-4 py-2 rounded-lg font-semibold hover:opacity-90 transition-opacity">Upgrade</Link>
             </nav>

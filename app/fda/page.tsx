@@ -1,9 +1,9 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 
-const FDA_CATALYSTS = [
+const FDA_CATALYSTS_BASE = [
   {
     id: 1,
     ticker: 'SAVA',
@@ -13,7 +13,6 @@ const FDA_CATALYSTS = [
     phase: 'Phase 3',
     eventType: 'FDA Decision',
     date: '2025-12-15',
-    daysUntil: 44,
     probability: 68,
     marketCap: '$1.2B',
     potentialImpact: 'Very High',
@@ -27,7 +26,6 @@ const FDA_CATALYSTS = [
     phase: 'Phase 2b Results',
     eventType: 'Clinical Data',
     date: '2025-11-20',
-    daysUntil: 19,
     probability: 75,
     marketCap: '$4.8B',
     potentialImpact: 'High',
@@ -41,7 +39,6 @@ const FDA_CATALYSTS = [
     phase: 'Phase 3',
     eventType: 'Top-line Data',
     date: '2025-11-08',
-    daysUntil: 7,
     probability: 82,
     marketCap: '$890M',
     potentialImpact: 'Very High',
@@ -55,7 +52,6 @@ const FDA_CATALYSTS = [
     phase: 'Phase 3',
     eventType: 'FDA Review',
     date: '2026-01-30',
-    daysUntil: 90,
     probability: 71,
     marketCap: '$2.1B',
     potentialImpact: 'High',
@@ -69,7 +65,6 @@ const FDA_CATALYSTS = [
     phase: 'sNDA Review',
     eventType: 'FDA Decision',
     date: '2025-12-01',
-    daysUntil: 30,
     probability: 79,
     marketCap: '$650M',
     potentialImpact: 'Medium',
@@ -83,7 +78,6 @@ const FDA_CATALYSTS = [
     phase: 'NDA Filed',
     eventType: 'FDA Approval',
     date: '2025-11-15',
-    daysUntil: 14,
     probability: 88,
     marketCap: '$8.2B',
     potentialImpact: 'Very High',
@@ -93,8 +87,36 @@ const FDA_CATALYSTS = [
 export default function FDAPage() {
   const router = useRouter();
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'high-probability'>('all');
+  const [catalysts, setCatalysts] = useState(FDA_CATALYSTS_BASE.map(c => ({ ...c, daysUntil: 0 })));
 
-  const filteredCatalysts = FDA_CATALYSTS.filter((catalyst) => {
+  // Calculate days until for each catalyst
+  useEffect(() => {
+    const calculateDaysUntil = () => {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+      
+      const updated = FDA_CATALYSTS_BASE.map(catalyst => {
+        const eventDate = new Date(catalyst.date);
+        eventDate.setHours(0, 0, 0, 0);
+        const diffTime = eventDate.getTime() - today.getTime();
+        const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+        
+        return {
+          ...catalyst,
+          daysUntil: diffDays
+        };
+      });
+      
+      setCatalysts(updated);
+    };
+    
+    calculateDaysUntil();
+    // Update daily
+    const interval = setInterval(calculateDaysUntil, 1000 * 60 * 60 * 24);
+    return () => clearInterval(interval);
+  }, []);
+
+  const filteredCatalysts = catalysts.filter((catalyst) => {
     if (filter === 'upcoming') return catalyst.daysUntil <= 30;
     if (filter === 'high-probability') return catalyst.probability >= 75;
     return true;
@@ -110,6 +132,12 @@ export default function FDAPage() {
     if (prob >= 80) return 'text-green-400';
     if (prob >= 70) return 'text-yellow-400';
     return 'text-orange-400';
+  };
+
+  const getDaysUntilColor = (days: number) => {
+    if (days <= 7) return 'text-red-400 font-bold';
+    if (days <= 30) return 'text-yellow-400 font-semibold';
+    return 'text-purple-200';
   };
 
   return (
@@ -132,6 +160,7 @@ export default function FDAPage() {
               <button onClick={() => router.push('/')} className="text-white/80 hover:text-white transition-colors">Home</button>
               <button onClick={() => router.push('/whales')} className="text-white/80 hover:text-white transition-colors">Whales</button>
               <button onClick={() => router.push('/fda')} className="text-white font-semibold">FDA</button>
+              <button onClick={() => router.push('/hidden-gems')} className="text-white/80 hover:text-white transition-colors">Hidden Gems</button>
             </nav>
           </div>
         </div>
@@ -221,7 +250,13 @@ export default function FDAPage() {
                   <div>
                     <div className="text-sm text-purple-300 mb-1">Event Date</div>
                     <div className="text-xl font-bold text-white">{catalyst.date}</div>
-                    <div className="text-sm text-purple-200">{catalyst.daysUntil} days away</div>
+                    <div className={`text-lg ${getDaysUntilColor(catalyst.daysUntil)}`}>
+                      {catalyst.daysUntil > 0 
+                        ? `${catalyst.daysUntil} days left ⏰` 
+                        : catalyst.daysUntil === 0 
+                        ? 'TODAY! 🔥' 
+                        : `${Math.abs(catalyst.daysUntil)} days ago`}
+                    </div>
                   </div>
                   <div>
                     <div className="text-sm text-purple-300 mb-1">Success Probability</div>
